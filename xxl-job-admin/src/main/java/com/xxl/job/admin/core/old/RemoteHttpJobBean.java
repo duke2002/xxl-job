@@ -15,7 +15,7 @@
 // * @author xuxueli 2015-12-17 18:20:34
 // */
 ////@DisallowConcurrentExecution
-//public class RemoteHttpJobBean extends QuartzJobBean {
+//public class RemoteHttpJobBean extends QuartzJobBean {ØØ
 //	private static Logger logger = LoggerFactory.getLogger(RemoteHttpJobBean.class);
 //
 //	@Override

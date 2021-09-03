@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 执行器的入口程序：包括初始化与启动Excutor
+ *
  * @author xuxueli 2018-10-31 19:05:43
  */
 public class FramelessApplication {
@@ -16,6 +18,7 @@ public class FramelessApplication {
 
         try {
             // start
+            // 初始化XxlJobSimpleExecutor；并启动：
             FrameLessXxlJobConfig.getInstance().initXxlJobExecutor();
 
             // Blocks until interrupted

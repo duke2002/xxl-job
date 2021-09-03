@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Date;
 
 /**
+ * 阻塞处理策略
+ *
  * Created by xuxueli on 17/3/1.
  */
 public class ExecutorBizImpl implements ExecutorBiz {

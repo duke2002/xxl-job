@@ -131,7 +131,7 @@ public class SampleXxlJob {
         String param = XxlJobHelper.getJobParam();
         if (param==null || param.trim().length()==0) {
             XxlJobHelper.log("param["+ param +"] invalid.");
-
+            // 可以通过 "XxlJobHelper.handleFail/handleSuccess" 自主设置任务结果；
             XxlJobHelper.handleFail();
             return;
         }

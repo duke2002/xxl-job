@@ -9,10 +9,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
+ * 路由策略：最不经常使用
+ *
  * 单个JOB对应的每个执行器，使用频率最低的优先被选举
  *      a(*)、LFU(Least Frequently Used)：最不经常使用，频率/次数
  *      b、LRU(Least Recently Used)：最近最久未使用，时间
- *
+ * 把地址列表加入到内存中，等下次执行时剔除无效的地址，判断地址列表中执行次数最少的地址取出
+ * 频率、次数
  * Created by xuxueli on 17/3/10.
  */
 public class ExecutorRouteLFU extends ExecutorRouter {

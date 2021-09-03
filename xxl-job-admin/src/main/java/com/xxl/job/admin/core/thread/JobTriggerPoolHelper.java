@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * job trigger thread pool helper
+ * 初始化执行器注册，异步执行，registryThread线程，每隔30s执行一次
  *
  * @author xuxueli 2018-07-03 21:08:07
  */
@@ -25,6 +26,7 @@ public class JobTriggerPoolHelper {
     private ThreadPoolExecutor slowTriggerPool = null;
 
     public void start(){
+        // 缺省的，快线程，最大线程数是200
         fastTriggerPool = new ThreadPoolExecutor(
                 10,
                 XxlJobAdminConfig.getAdminConfig().getTriggerPoolFastMax(),
@@ -38,6 +40,7 @@ public class JobTriggerPoolHelper {
                     }
                 });
 
+        // 慢线程 最大线程数是100
         slowTriggerPool = new ThreadPoolExecutor(
                 10,
                 XxlJobAdminConfig.getAdminConfig().getTriggerPoolSlowMax(),
@@ -67,6 +70,9 @@ public class JobTriggerPoolHelper {
 
 
     /**
+     * 执行作业触发
+     * 判断该job超时次数（大于500ms的次数），根据此放入快慢线程池
+     * 执行Job
      * add trigger
      */
     public void addTrigger(final int jobId,
@@ -106,7 +112,7 @@ public class JobTriggerPoolHelper {
 
                     // incr timeout-count-map
                     long cost = System.currentTimeMillis()-start;
-                    if (cost > 500) {       // ob-timeout threshold 500ms
+                    if (cost > 500) {       // ob-timeout threshold 500ms 假如大于500ms，那么让timeoutCount+1, 也就是说10次都超过500ms，才把触发放在慢线程池里面
                         AtomicInteger timeoutCount = jobTimeoutCountMap.putIfAbsent(jobId, new AtomicInteger(1));
                         if (timeoutCount != null) {
                             timeoutCount.incrementAndGet();

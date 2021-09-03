@@ -17,6 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 调度策略源码(主要的定时器扫描线程)
+ *
  * @author xuxueli 2019-05-21
  */
 public class JobScheduleHelper {
@@ -37,7 +39,12 @@ public class JobScheduleHelper {
 
     public void start(){
 
-        // schedule thread
+        // schedule thread 每5s一次根据线程池配置取出待执行的JobList,此处使用了forupdate作为悲观锁防止了多线程风险；
+        // 使用三种策略判断Jobinfo；
+        //   触发事件<now -5s 的，根据配置策略：忽略，立即执行等等，然后触发时间加一个周期;触发时间第一次通过配置的Cron表达式解析得出每个任务的触发时间
+        //   触发事件<= now的，立即执行并且出发时间加一个周期；
+        //   触发事件>now的，根据秒数放入一个时间轮map中；触发事件加一个周期；
+        // 如果任务太多的话，会第一批取完休眠1s再取5s，知道没有任务为止；休眠5s；
         scheduleThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -218,6 +225,8 @@ public class JobScheduleHelper {
 
 
         // ring thread
+        // sleep到整秒；------设计巧妙，避免了ms级处理后重复触发；
+        // 处理事件轮，每一秒取出当前秒数和上一秒的所有需要触发的job，直接触发；
         ringThread = new Thread(new Runnable() {
             @Override
             public void run() {

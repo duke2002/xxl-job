@@ -9,7 +9,7 @@ import com.xxl.job.core.util.XxlJobRemotingUtil;
 import java.util.List;
 
 /**
- * admin api test
+ * admin api test Xxl自写的RPC：封装的http请求
  *
  * @author xuxueli 2017-07-28 22:14:52
  */

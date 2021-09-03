@@ -11,10 +11,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
+ * 路由策略：最近最久未使用
+ *
  * 单个JOB对应的每个执行器，最久为使用的优先被选举
  *      a、LFU(Least Frequently Used)：最不经常使用，频率/次数
  *      b(*)、LRU(Least Recently Used)：最近最久未使用，时间
- *
+ * 用链表的方式存储地址，第一个地址使用后下次该任务过来使用第二个地址，依次类推（PS：有点类似轮询策略）
+ * 与轮询策略的区别：
+ *  1. 轮询策略是第一次随机找一台机器执行，后续执行会将索引加1取余
+ *  2. 轮询策略依赖 addressList 的顺序，如果这个顺序变了，索引到下一次的机器可能不是期望的顺序
+ *  3. LRU算法第一次执行会把所有地址加载进来并缓存，从第一个地址开始执行，即使 addressList 地址顺序变了也不影响ßß次数
+ *  ß
  * Created by xuxueli on 17/3/10.
  */
 public class ExecutorRouteLRU extends ExecutorRouter {

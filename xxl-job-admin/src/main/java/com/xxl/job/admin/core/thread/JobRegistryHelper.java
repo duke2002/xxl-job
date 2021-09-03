@@ -14,7 +14,8 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /**
- * job registry instance
+ * job registry instance 注册监控器
+ *
  * @author xuxueli 2016-10-02 19:10:24
  */
 public class JobRegistryHelper {
@@ -25,6 +26,7 @@ public class JobRegistryHelper {
 		return instance;
 	}
 
+	// question 注册或移除执行器线程池
 	private ThreadPoolExecutor registryOrRemoveThreadPool = null;
 	private Thread registryMonitorThread;
 	private volatile boolean toStop = false;
@@ -32,6 +34,7 @@ public class JobRegistryHelper {
 	public void start(){
 
 		// for registry or remove
+		// comment 我们很多线程池的拒绝策略都是Rejected，这个有可能会丢失任务
 		registryOrRemoveThreadPool = new ThreadPoolExecutor(
 				2,
 				10,
@@ -44,6 +47,7 @@ public class JobRegistryHelper {
 						return new Thread(r, "xxl-job, admin JobRegistryMonitorHelper-registryOrRemoveThreadPool-" + r.hashCode());
 					}
 				},
+				// comment 这个地方可以变成CallerRunsPolicy把。
 				new RejectedExecutionHandler() {
 					@Override
 					public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
@@ -59,20 +63,25 @@ public class JobRegistryHelper {
 				while (!toStop) {
 					try {
 						// auto registry group
+						// comment 从xxl—job-group中得到执行器地址类型（0=自动注册、1=手动录入）是自动注册的
 						List<XxlJobGroup> groupList = XxlJobAdminConfig.getAdminConfig().getXxlJobGroupDao().findByAddressType(0);
 						if (groupList!=null && !groupList.isEmpty()) {
 
 							// remove dead address (admin/executor)
+							// comment 移除90秒内没有上报心跳的执行器
 							List<Integer> ids = XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryDao().findDead(RegistryConfig.DEAD_TIMEOUT, new Date());
 							if (ids!=null && ids.size()>0) {
 								XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryDao().removeDead(ids);
 							}
 
 							// fresh online address (admin/executor)
+							// key是appname，value是执行器内置server url的列表
 							HashMap<String, List<String>> appAddressMap = new HashMap<String, List<String>>();
+							// comment 得到90秒内上报过心跳的执行器列表
 							List<XxlJobRegistry> list = XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryDao().findAll(RegistryConfig.DEAD_TIMEOUT, new Date());
 							if (list != null) {
 								for (XxlJobRegistry item: list) {
+									// comment假如是执行器
 									if (RegistryConfig.RegistType.EXECUTOR.name().equals(item.getRegistryGroup())) {
 										String appname = item.getRegistryKey();
 										List<String> registryList = appAddressMap.get(appname);
@@ -90,6 +99,7 @@ public class JobRegistryHelper {
 
 							// fresh group address
 							for (XxlJobGroup group: groupList) {
+								// comment 得到90秒内上报过心跳的执行器列表
 								List<String> registryList = appAddressMap.get(group.getAppname());
 								String addressListStr = null;
 								if (registryList!=null && !registryList.isEmpty()) {
@@ -99,6 +109,7 @@ public class JobRegistryHelper {
 										addressListSB.append(item).append(",");
 									}
 									addressListStr = addressListSB.toString();
+									// comment 去掉最后一个逗号
 									addressListStr = addressListStr.substring(0, addressListStr.length()-1);
 								}
 								group.setAddressList(addressListStr);
@@ -113,6 +124,7 @@ public class JobRegistryHelper {
 						}
 					}
 					try {
+						//comment 睡眠30秒
 						TimeUnit.SECONDS.sleep(RegistryConfig.BEAT_TIMEOUT);
 					} catch (InterruptedException e) {
 						if (!toStop) {

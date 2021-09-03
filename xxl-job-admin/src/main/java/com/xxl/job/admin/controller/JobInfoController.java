@@ -136,7 +136,15 @@ public class JobInfoController {
 	public ReturnT<String> start(int id) {
 		return xxlJobService.start(id);
 	}
-	
+
+	/**
+	 * 手动执行方式
+	 *
+	 * @param id
+	 * @param executorParam
+	 * @param addressList
+	 * @return
+	 */
 	@RequestMapping("/trigger")
 	@ResponseBody
 	//@PermissionLimit(limit = false)

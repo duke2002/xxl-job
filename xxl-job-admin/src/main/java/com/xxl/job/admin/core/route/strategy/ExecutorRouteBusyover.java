@@ -11,6 +11,8 @@ import com.xxl.job.core.biz.model.TriggerParam;
 import java.util.List;
 
 /**
+ * 路由策略：忙碌转移
+ * 按照顺序依次进行空闲检测，第一个空闲检测成功的机器选定为目标执行器并发起调度
  * Created by xuxueli on 17/3/10.
  */
 public class ExecutorRouteBusyover extends ExecutorRouter {

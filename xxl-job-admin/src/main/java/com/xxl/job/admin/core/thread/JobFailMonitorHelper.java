@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 日志监控器
  * job monitor instance
  *
  * @author xuxueli 2015-9-1 18:05:56
@@ -37,12 +38,13 @@ public class JobFailMonitorHelper {
 				// monitor
 				while (!toStop) {
 					try {
-
+						// COMMENT 得到错误日志 告警状态(0-默认、1-无需告警、2-告警成功、3-告警失败)为0
 						List<Long> failLogIds = XxlJobAdminConfig.getAdminConfig().getXxlJobLogDao().findFailJobLogIds(1000);
 						if (failLogIds!=null && !failLogIds.isEmpty()) {
 							for (long failLogId: failLogIds) {
 
 								// lock log
+								// comment 把报警状态从0更新为-1
 								int lockRet = XxlJobAdminConfig.getAdminConfig().getXxlJobLogDao().updateAlarmStatus(failLogId, 0, -1);
 								if (lockRet < 1) {
 									continue;
@@ -51,10 +53,11 @@ public class JobFailMonitorHelper {
 								XxlJobInfo info = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().loadById(log.getJobId());
 
 								// 1、fail retry monitor
-								if (log.getExecutorFailRetryCount() > 0) {
+								if (log.getExecutorFailRetryCount() > 0) { //comment 失败重试次数 > 0
 									JobTriggerPoolHelper.trigger(log.getJobId(), TriggerTypeEnum.RETRY, (log.getExecutorFailRetryCount()-1), log.getExecutorShardingParam(), log.getExecutorParam(), null);
 									String retryMsg = "<br><br><span style=\"color:#F39C12;\" > >>>>>>>>>>>"+ I18nUtil.getString("jobconf_trigger_type_retry") +"<<<<<<<<<<< </span><br>";
 									log.setTriggerMsg(log.getTriggerMsg() + retryMsg);
+									// comment 更新调度日志
 									XxlJobAdminConfig.getAdminConfig().getXxlJobLogDao().updateTriggerInfo(log);
 								}
 
@@ -66,7 +69,7 @@ public class JobFailMonitorHelper {
 								} else {
 									newAlarmStatus = 1;
 								}
-
+								// comment 更新报警状态
 								XxlJobAdminConfig.getAdminConfig().getXxlJobLogDao().updateAlarmStatus(failLogId, -1, newAlarmStatus);
 							}
 						}
